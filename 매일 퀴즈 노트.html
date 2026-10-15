@@ -1,0 +1,720 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>매일 퀴즈 노트</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&family=Nanum+Myeongjo:wght@700;800&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<style>
+/* Layout: a single answer-sheet column on faint graph paper; tabs on top, one job per tab. */
+:root{
+  --paper:#F5F8FC; --sheet:#FFFFFF; --ink:#18263B; --muted:#5A6A80; --line:#D8E0EB; --grid:rgba(47,91,211,.06);
+  --accent:#2F5BD3; --accent-soft:#E6EDFC; --mark:#FFE36E;
+  --good:#1E8A57; --good-soft:#E3F4EA; --warn:#B07800; --warn-soft:#FBF1D9; --bad:#C2413A; --bad-soft:#FBE7E5;
+  --f-display:"Nanum Myeongjo","Noto Serif KR",serif;
+  --f-body:"IBM Plex Sans KR","Noto Sans JP","Hiragino Sans","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0E1520; --sheet:#151E2C; --ink:#E4EAF3; --muted:#93A2B8; --line:#2A3649; --grid:rgba(120,155,240,.06);
+  --accent:#7FA2FF; --accent-soft:#1D2A47; --mark:#5E5320;
+  --good:#5CCB92; --good-soft:#15301F; --warn:#E3B04B; --warn-soft:#352A12; --bad:#F07F77; --bad-soft:#3A1C1A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0E1520; --sheet:#151E2C; --ink:#E4EAF3; --muted:#93A2B8; --line:#2A3649; --grid:rgba(120,155,240,.06);
+  --accent:#7FA2FF; --accent-soft:#1D2A47; --mark:#5E5320;
+  --good:#5CCB92; --good-soft:#15301F; --warn:#E3B04B; --warn-soft:#352A12; --bad:#F07F77; --bad-soft:#3A1C1A; color-scheme:dark}
+html{background:var(--paper)}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.65;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:22px 22px}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 64px}
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:14px;border-bottom:2px solid var(--ink)}
+h1{font-family:var(--f-display);font-weight:800;font-size:28px;line-height:1.2;margin:0;letter-spacing:-.01em}
+h1 small{display:block;font-family:var(--f-body);font-weight:500;font-size:12px;letter-spacing:.08em;color:var(--muted);margin-bottom:2px}
+.stats{display:flex;gap:16px;font-size:13px;color:var(--muted)}
+.stats b{font-family:var(--f-mono);color:var(--ink);font-size:17px;font-weight:500;font-variant-numeric:tabular-nums;margin-right:3px}
+.stats .dday b{color:var(--accent)}
+nav.tabs{display:flex;gap:4px;margin:16px 0 18px;border-bottom:1px solid var(--line)}
+nav.tabs button{appearance:none;background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-1px;padding:8px 12px;font:inherit;font-weight:600;color:var(--muted);cursor:pointer}
+nav.tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--accent)}
+nav.tabs .count{font-family:var(--f-mono);font-size:11px;background:var(--accent-soft);color:var(--accent);border-radius:9px;padding:1px 6px;margin-left:4px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.card{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:18px}
+.card h2{font-size:17px;margin:0 0 6px;font-weight:700}
+.card h3{font-size:14px;margin:0 0 6px;font-weight:700}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{appearance:none;font:inherit;font-size:13px;border:1px solid var(--line);background:var(--sheet);color:var(--ink);padding:4px 12px;border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn{appearance:none;font:inherit;font-weight:600;border:1px solid var(--accent);background:var(--accent);color:#fff;padding:9px 16px;border-radius:5px;cursor:pointer}
+:root[data-theme="dark"] .btn{color:#0E1520}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn{color:#0E1520}}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.danger{background:transparent;color:var(--bad);border-color:var(--line);font-weight:500;padding:4px 10px;font-size:13px}
+.btn.danger.armed{border-color:var(--bad);background:var(--bad-soft)}
+.btn:disabled{opacity:.5;cursor:default}
+button:focus-visible,textarea:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=text],input[type=date],select,textarea{font:inherit;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:5px;padding:8px 10px;width:100%;box-sizing:border-box}
+textarea{min-height:88px;resize:vertical;line-height:1.6}
+label.field{display:flex;flex-direction:column;gap:4px;font-size:13px;font-weight:600;flex:1;min-width:160px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:5px;overflow:hidden}
+.seg button{appearance:none;font:inherit;font-size:13px;border:0;background:var(--sheet);color:var(--ink);padding:7px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.drop{border:1.5px dashed var(--line);border-radius:6px;padding:22px;text-align:center;cursor:pointer;background:var(--paper)}
+.drop.over{border-color:var(--accent);background:var(--accent-soft)}
+.steps{margin:10px 0 0;padding-left:20px}
+.steps li{margin:4px 0}
+/* question sheet */
+.q{background:var(--sheet);border:1px solid var(--line);border-radius:6px;padding:16px 18px;display:flex;flex-direction:column;gap:10px}
+.qhead{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.qnum{font-family:var(--f-display);font-weight:800;font-size:20px;line-height:1}
+.tag{font-size:11.5px;font-weight:600;letter-spacing:.04em;padding:2px 8px;border-radius:3px;background:var(--accent-soft);color:var(--accent)}
+.tag.rev{background:var(--warn-soft);color:var(--warn)}
+.qtext{white-space:pre-wrap;font-size:15.5px;min-width:0;overflow-wrap:anywhere}
+.ans-label{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em}
+.box{white-space:pre-wrap;overflow-wrap:anywhere;padding:10px 12px;border-radius:5px;background:var(--paper);border:1px solid var(--line);font-size:14.5px}
+.box.empty{color:var(--muted);font-style:italic}
+.verdict{display:inline-flex;gap:6px;align-items:center;font-weight:700;font-size:13px;padding:3px 10px;border-radius:999px}
+.v-good{background:var(--good-soft);color:var(--good)} .v-mid{background:var(--warn-soft);color:var(--warn)} .v-bad{background:var(--bad-soft);color:var(--bad)}
+.score{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.expl{border-left:3px solid var(--accent);padding:2px 0 2px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.evidence{font-size:13.5px;color:var(--muted);white-space:pre-wrap;overflow-wrap:anywhere}
+.tip{font-size:13.5px;background:linear-gradient(transparent 55%,var(--mark) 55%);display:inline}
+.summary{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+.bigscore{font-family:var(--f-display);font-weight:800;font-size:46px;line-height:1}
+.bigscore span{font-size:18px;color:var(--muted)}
+@media (max-width:480px){.summary{grid-template-columns:1fr}}
+.list{display:flex;flex-direction:column}
+.item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.item .main{min-width:0;flex:1}
+.item .title{font-weight:600;overflow-wrap:anywhere}
+.linkbtn{appearance:none;border:0;background:none;padding:0;font:inherit;text-align:left;color:inherit;cursor:pointer;width:100%}
+.kind{font-size:11px;font-weight:700;padding:1px 7px;border-radius:3px;margin-right:6px;vertical-align:1px}
+.kind.lecture{background:var(--accent-soft);color:var(--accent)} .kind.exam{background:var(--warn-soft);color:var(--warn)}
+.progress{height:6px;background:var(--line);border-radius:3px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--accent);transition:width .2s}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spinner{animation:none}}
+.err{color:var(--bad);font-size:13.5px}
+.notice{background:var(--warn-soft);color:var(--warn);border-radius:5px;padding:10px 12px;font-size:13.5px}
+</style>
+
+<div class="wrap" id="app"></div>
+
+<script>
+(() => {
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today = () => new Date().toLocaleDateString('sv-SE');
+const newId = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const ls = {
+  get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  del(k){ try { localStorage.removeItem(k); } catch {} },
+};
+const TYPE_LABEL = { short: '단답형', calc: '계산', essay: '서술형' };
+
+const S = {
+  ready: false, noDb: false, db: null, sample: null,
+  subjects: [], n: 5, materials: [], quizzes: [], reviews: [],
+  tab: ls.get('tab') || 'quiz', subject: ls.get('subject') || 'all',
+  gen: null, genErr: '', grading: null, gradeErr: '',
+  answers: {}, viewQuiz: null,
+  upload: { kind: 'lecture', subjectId: '', newSubject: '', label: '', files: [], busy: false, msg: '', pct: 0, err: '' },
+  armed: null,
+};
+
+/* ---------- derived ---------- */
+const subjName = id => (S.subjects.find(s => s.id === id) || {}).name || '과목 미지정';
+const inSubj = x => S.subject === 'all' || x.subjectId === S.subject;
+const lectureMats = () => S.materials.filter(m => m.kind === 'lecture' && inSubj(m));
+const examMats = () => S.materials.filter(m => m.kind === 'exam' && inSubj(m));
+const openReviews = () => S.reviews.filter(r => r.status === 'open' && inSubj(r));
+function todaysQuiz(){
+  const list = S.quizzes.filter(q => q.date === today() && q.subjectId === S.subject).sort((a, b) => b.setNo - a.setNo);
+  return list[0] || null;
+}
+function streak(){
+  const days = new Set(S.quizzes.filter(q => q.status === 'graded').map(q => q.date));
+  let d = new Date(); let n = 0;
+  if (!days.has(d.toLocaleDateString('sv-SE'))) d.setDate(d.getDate() - 1);
+  while (days.has(d.toLocaleDateString('sv-SE'))) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+}
+function dday(){
+  const pool = S.subjects.filter(s => s.examDate && (S.subject === 'all' || s.id === S.subject));
+  const t = new Date(today() + 'T00:00:00');
+  let best = null;
+  for (const s of pool) {
+    const diff = Math.round((new Date(s.examDate + 'T00:00:00') - t) / 86400000);
+    if (diff >= 0 && (!best || diff < best.diff)) best = { diff, name: s.name };
+  }
+  return best;
+}
+
+/* ---------- render ---------- */
+function render(){
+  const act = document.activeElement;
+  const focusId = act && act.id; const selS = act && act.selectionStart, selE = act && act.selectionEnd;
+  const app = $('#app');
+  const dd = dday();
+  app.innerHTML = `
+    <header class="top">
+      <h1><small>DAILY EXAM PRACTICE</small>매일 퀴즈 노트</h1>
+      <div class="stats">
+        ${dd ? `<span class="dday" title="${esc(dd.name)}"><b>D-${dd.diff === 0 ? 'DAY' : dd.diff}</b>${esc(dd.name)}</span>` : ''}
+        <span><b>${streak()}</b>일 연속</span>
+        <span><b>${S.quizzes.filter(q => q.status === 'graded').length}</b>세트 완료</span>
+      </div>
+    </header>
+    <nav class="tabs" role="tablist">
+      ${tabBtn('quiz', '오늘의 퀴즈')}
+      ${tabBtn('history', '기록 · 오답노트', S.reviews.filter(r => r.status === 'open').length)}
+      ${tabBtn('materials', '자료', S.materials.length)}
+    </nav>
+    <main>${S.noDb ? noDbView() : !S.ready ? `<p class="muted"><span class="spinner"></span>불러오는 중…</p>` :
+      S.tab === 'quiz' ? quizView() : S.tab === 'history' ? historyView() : materialsView()}</main>`;
+  if (focusId) { const el = document.getElementById(focusId); if (el) { el.focus(); try { if (selS != null) el.setSelectionRange(selS, selE); } catch {} } }
+}
+const tabBtn = (id, label, count) => `<button role="tab" data-tab="${id}" aria-selected="${S.tab === id}">${label}${count ? `<span class="count">${count}</span>` : ''}</button>`;
+const noDbView = () => `<div class="card"><h2>저장 공간에 연결하지 못했어요</h2><p class="muted">이 페이지는 claude.ai에서 로그인한 상태로 열어야 자료와 기록이 저장돼요. 새로고침해도 같다면 claude.ai에서 다시 열어 주세요.</p></div>`;
+
+function subjectChips(){
+  if (!S.subjects.length) return '';
+  return `<div class="chips" role="group" aria-label="과목">
+    <button class="chip" data-subject="all" aria-pressed="${S.subject === 'all'}">전체</button>
+    ${S.subjects.map(s => `<button class="chip" data-subject="${s.id}" aria-pressed="${S.subject === s.id}">${esc(s.name)}</button>`).join('')}
+  </div>`;
+}
+
+function quizView(){
+  const lect = lectureMats();
+  if (!S.materials.some(m => m.kind === 'lecture')) {
+    return `<div class="card">
+      <h2>먼저 수업 자료를 올려 주세요</h2>
+      <p class="muted">자료가 쌓이면 매일 다른 문제를 내 드려요.</p>
+      <ol class="steps">
+        <li><b>자료</b> 탭에서 수업 PDF를 올립니다. 과거 시험문제가 있으면 '과거문제'로 구분해서 올려 주세요.</li>
+        <li>여기로 돌아와 <b>오늘의 퀴즈 만들기</b>를 누르면 AI가 ${S.n}문제를 냅니다. 단답형, 계산, 서술형이 섞여 나와요.</li>
+        <li>다 풀고 제출하면 채점과 해설이 나오고, 틀린 문제는 오답노트에 쌓여 다음 퀴즈에 변형돼서 다시 나와요.</li>
+      </ol>
+      <div class="row" style="margin-top:14px"><button class="btn" data-tab="materials">자료 올리러 가기</button></div>
+    </div>`;
+  }
+  const q = todaysQuiz();
+  let body;
+  if (S.gen && S.gen.subject === S.subject) {
+    body = `<div class="card"><p><span class="spinner"></span>${esc(S.gen.msg)}</p><p class="muted small">자료 양에 따라 30초에서 2분쯤 걸려요.</p></div>`;
+  } else if (!q) {
+    body = `<div class="card">
+      <h2>${today().replace(/-/g, '. ')} 문제가 아직 없어요</h2>
+      <p class="muted small">수업 자료 ${lect.length}개${examMats().length ? ` · 과거문제 ${examMats().length}개 반영` : ''}${openReviews().length ? ` · 오답 복습 ${openReviews().length}개 대기` : ''}</p>
+      ${lect.length ? `<div class="row" style="margin-top:12px"><button class="btn" data-act="generate">오늘의 퀴즈 만들기 (${S.n}문제)</button></div>`
+        : `<p class="notice">이 과목에는 아직 수업 자료가 없어요. 자료 탭에서 올려 주세요.</p>`}
+      ${S.genErr ? `<p class="err">${esc(S.genErr)}</p>` : ''}
+    </div>`;
+  } else body = quizSheet(q, true);
+  return `<div class="stack">${subjectChips()}${body}</div>`;
+}
+
+function quizSheet(q, isToday){
+  const graded = q.status === 'graded' && q.grading;
+  const res = graded ? Object.fromEntries((q.grading.results || []).map(r => [r.id, r])) : {};
+  const head = `<div class="spread">
+      <div><h2 style="margin:0">${esc(q.date.replace(/-/g, '. '))}${q.setNo > 1 ? ` · ${q.setNo}세트` : ''}</h2>
+      <span class="muted small">${esc(q.subjectId === 'all' ? '전체 과목' : subjName(q.subjectId))} · ${q.questions.length}문제${q.sources ? ` · ${esc(q.sources)}` : ''}</span></div>
+      ${graded ? '' : `<span class="muted small">답을 다 적고 맨 아래에서 제출하세요</span>`}
+    </div>`;
+  let summary = '';
+  if (graded) {
+    const t = q.grading.total;
+    summary = `<div class="card summary">
+      <div class="bigscore">${t}<span> / 100</span></div>
+      <div><p style="margin:0 0 6px">${esc(q.grading.summary || '')}</p>
+      ${(q.grading.focus || []).length ? `<div class="small"><b>다시 볼 개념</b> · ${q.grading.focus.map(esc).join(', ')}</div>` : ''}</div>
+    </div>`;
+  }
+  const items = q.questions.map((qu, i) => {
+    const r = res[qu.id];
+    const a = graded ? (q.answers || {})[qu.id] : (S.answers[q.id] || {})[qu.id];
+    const v = r ? (r.score >= 80 ? 'v-good' : r.score >= 40 ? 'v-mid' : 'v-bad') : '';
+    return `<article class="q">
+      <div class="qhead"><span class="qnum">${i + 1}</span>
+        <span class="tag">${TYPE_LABEL[qu.type] || qu.type}</span>
+        ${qu.reviewId ? `<span class="tag rev">오답 복습</span>` : ''}
+        <span class="muted small">${esc(qu.topic || '')}</span>
+        ${r ? `<span class="verdict ${v}" style="margin-left:auto">${esc(r.verdict || '')} <span class="score">${r.score}</span></span>` : ''}
+      </div>
+      <div class="qtext">${esc(qu.question)}</div>
+      ${graded ? `
+        <div><div class="ans-label">내 답</div><div class="box ${a ? '' : 'empty'}">${a ? esc(a) : '답을 적지 않았어요'}</div></div>
+        ${r && r.feedback ? `<div class="small">${esc(r.feedback)}</div>` : ''}
+        <div><div class="ans-label">모범 답안</div><div class="box">${esc(qu.answer)}</div></div>
+        ${r && r.explanation ? `<div><div class="ans-label">해설</div><div class="expl">${esc(r.explanation)}</div></div>` : ''}
+        ${r && r.tip ? `<div><span class="tip">시험 팁 · ${esc(r.tip)}</span></div>` : ''}
+        ${qu.evidence || qu.source ? `<div class="evidence">근거${qu.source ? ` (${esc(qu.source)})` : ''}: ${esc(qu.evidence || '')}</div>` : ''}
+      ` : `
+        <label class="ans-label" for="a_${q.id}_${qu.id}">내 답${qu.type === 'calc' ? ' · 풀이 과정도 적으면 부분 점수를 받아요' : ''}</label>
+        <textarea id="a_${q.id}_${qu.id}" data-ans="${qu.id}" data-quiz="${q.id}" ${S.grading ? 'disabled' : ''}>${esc(a || '')}</textarea>
+      `}
+    </article>`;
+  }).join('');
+  let foot = '';
+  if (!graded) {
+    foot = S.grading === q.id
+      ? `<div class="card"><p style="margin:0"><span class="spinner"></span>채점하고 해설을 쓰는 중이에요… <span class="muted small" id="elapsed"></span></p></div>`
+      : `<div class="row"><button class="btn" data-act="submit" data-quiz="${q.id}">제출하고 해설 보기</button>${S.gradeErr ? `<span class="err">${esc(S.gradeErr)}</span>` : ''}</div>`;
+  } else if (graded && isToday) {
+    foot = `<div class="row"><button class="btn ghost" data-act="generate">한 세트 더 풀기</button>${S.genErr ? `<span class="err">${esc(S.genErr)}</span>` : ''}</div>`;
+  }
+  return `${head}${summary}${items}${foot}`;
+}
+
+function historyView(){
+  if (S.viewQuiz) {
+    const q = S.quizzes.find(x => x.id === S.viewQuiz);
+    if (q) return `<div class="stack"><div><button class="btn ghost" data-act="back">← 기록으로</button></div>${quizSheet(q, q.date === today() && q.subjectId === S.subject ? true : null)}</div>`;
+  }
+  const qs = S.quizzes.filter(inSubjQuiz);
+  const revs = openReviews();
+  const scores = qs.filter(q => q.status === 'graded').slice(0, 14).reverse();
+  return `<div class="stack">${subjectChips()}
+    ${scores.length > 1 ? `<div class="card"><h3>최근 점수</h3>${sparkline(scores)}</div>` : ''}
+    <div class="card"><div class="spread"><h2>오답노트</h2><span class="muted small">${revs.length}개 · 다음 퀴즈에 하나씩 변형돼서 다시 나와요</span></div>
+      ${revs.length ? `<div class="list">${revs.map(r => `<div class="item"><div class="main">
+          <div class="title">${esc(r.topic || '')}</div>
+          <div class="small" style="white-space:pre-wrap">${esc(r.question)}</div>
+          <details class="small"><summary class="muted">답과 해설 보기</summary><div class="box" style="margin-top:6px">${esc(r.answer)}</div><div class="expl" style="margin-top:6px">${esc(r.explanation || '')}</div></details>
+        </div><button class="btn ghost" style="padding:4px 10px;font-size:13px" data-act="resolve" data-id="${r.id}">외웠어요</button></div>`).join('')}</div>`
+        : `<p class="muted small">아직 틀린 문제가 없어요. 점수가 70점 미만인 문제가 여기에 쌓여요.</p>`}
+    </div>
+    <div class="card"><h2>지난 퀴즈</h2>
+      ${qs.length ? `<div class="list">${qs.map(q => `<div class="item"><button class="linkbtn" data-act="view" data-id="${q.id}">
+          <div class="spread"><span class="title">${esc(q.date.replace(/-/g, '. '))}${q.setNo > 1 ? ` · ${q.setNo}세트` : ''} <span class="muted small" style="font-weight:400">${esc(q.subjectId === 'all' ? '전체' : subjName(q.subjectId))}</span></span>
+          <span class="score">${q.status === 'graded' ? `${q.grading.total}점` : '<span class="muted small">안 풀었음</span>'}</span></div>
+          <div class="muted small">${esc(q.questions.map(x => x.topic).filter(Boolean).join(' · '))}</div>
+        </button></div>`).join('')}</div>` : `<p class="muted small">푼 퀴즈가 여기에 날짜별로 남아요.</p>`}
+    </div></div>`;
+}
+const inSubjQuiz = q => S.subject === 'all' || q.subjectId === S.subject;
+function sparkline(qs){
+  const W = 640, H = 120, P = 24, n = qs.length;
+  const x = i => P + (W - 2 * P) * (n === 1 ? .5 : i / (n - 1));
+  const y = v => H - P - (H - 2 * P) * v / 100;
+  const pts = qs.map((q, i) => `${x(i).toFixed(1)},${y(q.grading.total).toFixed(1)}`).join(' ');
+  const last = qs[n - 1];
+  return `<div style="overflow-x:auto"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:100%;display:block" role="img" aria-label="최근 점수 추이">
+    ${[0, 50, 100].map(v => `<line x1="${P}" x2="${W - P}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)" stroke-width="1"/><text x="${P - 6}" y="${y(v) + 4}" text-anchor="end" font-size="10" fill="var(--muted)" font-family="IBM Plex Mono, monospace">${v}</text>`).join('')}
+    <polygon points="${x(0)},${y(0)} ${pts} ${x(n - 1)},${y(0)}" fill="var(--accent-soft)" opacity=".7"/>
+    <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2"/>
+    <circle cx="${x(n - 1)}" cy="${y(last.grading.total)}" r="4" fill="var(--accent)"/>
+    <text x="${x(n - 1)}" y="${y(last.grading.total) - 9}" text-anchor="end" font-size="11" fill="var(--ink)" font-family="IBM Plex Mono, monospace">${last.grading.total}</text>
+  </svg></div>`;
+}
+
+function materialsView(){
+  const U = S.upload;
+  const subjOpts = S.subjects.map(s => `<option value="${s.id}" ${U.subjectId === s.id ? 'selected' : ''}>${esc(s.name)}</option>`).join('');
+  const groups = {};
+  for (const m of S.materials) (groups[m.subjectId] ||= []).push(m);
+  return `<div class="stack">
+    <div class="card"><h2>PDF 올리기</h2>
+      <p class="muted small">텍스트를 선택할 수 있는 PDF라면 내용을 읽어서 저장해요. 원본 파일은 저장하지 않아요.</p>
+      <div class="stack" style="gap:12px;margin-top:10px">
+        <div class="row">
+          <div class="seg" role="group" aria-label="자료 종류">
+            <button data-kind="lecture" aria-pressed="${U.kind === 'lecture'}">수업 자료</button>
+            <button data-kind="exam" aria-pressed="${U.kind === 'exam'}">과거 시험문제</button>
+          </div>
+        </div>
+        <div class="row">
+          <label class="field">과목
+            <select id="up_subject"><option value="">${S.subjects.length ? '과목 선택' : '새 과목 이름을 오른쪽에 적어 주세요'}</option>${subjOpts}<option value="__new" ${U.subjectId === '__new' ? 'selected' : ''}>+ 새 과목</option></select>
+          </label>
+          ${(!S.subjects.length || U.subjectId === '__new') ? `<label class="field">새 과목 이름<input type="text" id="up_newsubject" placeholder="예: 이공학기초실험 2B" value="${esc(U.newSubject)}"></label>` : ''}
+        </div>
+        <label class="field">메모 (선택)<input type="text" id="up_label" placeholder="예: 제3회, 2024 기말" value="${esc(U.label)}"></label>
+        <div class="drop" id="drop" tabindex="0" role="button" aria-label="PDF 파일 선택">
+          ${U.files.length ? `<b>${U.files.map(f => esc(f.name)).join(', ')}</b><div class="muted small">다른 파일을 고르려면 다시 누르세요</div>` : `<b>PDF를 끌어다 놓거나 눌러서 고르기</b><div class="muted small">여러 개를 한 번에 올려도 돼요</div>`}
+        </div>
+        <input type="file" id="file" accept="application/pdf,.pdf" multiple hidden>
+        ${U.busy ? `<div><div class="small" style="margin-bottom:6px">${esc(U.msg)}</div><div class="progress"><i style="width:${U.pct}%"></i></div></div>`
+          : `<div class="row"><button class="btn" data-act="upload" ${U.files.length ? '' : 'disabled'}>저장하기</button>${U.msg ? `<span class="small" style="color:var(--good)">${esc(U.msg)}</span>` : ''}</div>`}
+        ${U.err ? `<p class="err">${esc(U.err)}</p>` : ''}
+      </div>
+    </div>
+    ${Object.keys(groups).length ? Object.entries(groups).map(([sid, mats]) => `
+      <div class="card"><div class="spread"><h2>${esc(subjName(sid))}</h2><span class="muted small">${mats.length}개</span></div>
+        <div class="list">${mats.slice().reverse().map(m => `<div class="item"><div class="main">
+            <div class="title"><span class="kind ${m.kind}">${m.kind === 'exam' ? '과거문제' : '수업'}</span>${esc(m.name)}</div>
+            <div class="muted small">${m.label ? esc(m.label) + ' · ' : ''}${m.pages}쪽 · ${new Date(m.createdAt).toLocaleDateString('ko-KR')}${m.chars < 300 ? ' · <span style="color:var(--warn)">읽힌 글자가 거의 없어요</span>' : ''}</div>
+          </div><button class="btn danger ${S.armed === m.id ? 'armed' : ''}" data-act="delmat" data-id="${m.id}">${S.armed === m.id ? '정말 삭제' : '삭제'}</button></div>`).join('')}</div>
+      </div>`).join('') : ''}
+    <div class="card"><h2>설정</h2>
+      <div class="stack" style="gap:12px;margin-top:8px">
+        <div class="row"><span class="small" style="font-weight:600;min-width:120px">한 세트 문제 수</span>
+          <div class="seg" role="group" aria-label="문제 수">${[3, 5, 7, 10].map(k => `<button data-n="${k}" aria-pressed="${S.n === k}">${k}문제</button>`).join('')}</div></div>
+        ${S.subjects.map(s => `<div class="row"><span class="small" style="font-weight:600;min-width:120px">${esc(s.name)} 시험일</span>
+          <input type="date" id="exam_${s.id}" data-examdate="${s.id}" value="${esc(s.examDate || '')}" style="width:auto"></div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click', async e => {
+  const t = e.target.closest('[data-tab],[data-subject],[data-act],[data-kind],[data-n],#drop');
+  if (!t) return;
+  if (t.dataset.tab) { S.tab = t.dataset.tab; S.viewQuiz = null; ls.set('tab', S.tab); render(); return; }
+  if (t.dataset.subject) { S.subject = t.dataset.subject; ls.set('subject', S.subject); S.genErr = ''; render(); return; }
+  if (t.dataset.kind) { S.upload.kind = t.dataset.kind; render(); return; }
+  if (t.dataset.n) { S.n = +t.dataset.n; render(); saveConfig({ n: S.n }); return; }
+  if (t.id === 'drop') { $('#file').click(); return; }
+  const a = t.dataset.act;
+  if (a === 'generate') generate();
+  else if (a === 'submit') submit(t.dataset.quiz);
+  else if (a === 'upload') uploadFiles();
+  else if (a === 'view') { S.viewQuiz = t.dataset.id; render(); window.scrollTo(0, 0); }
+  else if (a === 'back') { S.viewQuiz = null; render(); }
+  else if (a === 'resolve') { try { await S.db.doc('reviews/' + t.dataset.id).update({ status: 'resolved' }); } catch (err) { console.warn(err); } }
+  else if (a === 'delmat') {
+    if (S.armed !== t.dataset.id) { S.armed = t.dataset.id; render(); setTimeout(() => { if (S.armed === t.dataset.id) { S.armed = null; render(); } }, 4000); return; }
+    S.armed = null; deleteMaterial(t.dataset.id);
+  }
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset.ans) {
+    const qid = t.dataset.quiz;
+    (S.answers[qid] ||= {})[t.dataset.ans] = t.value;
+    ls.set('ans:' + qid, S.answers[qid]);
+  } else if (t.id === 'up_newsubject') S.upload.newSubject = t.value;
+  else if (t.id === 'up_label') S.upload.label = t.value;
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (t.id === 'up_subject') { S.upload.subjectId = t.value; render(); }
+  else if (t.id === 'file') { S.upload.files = [...t.files].filter(f => /pdf$/i.test(f.name) || f.type === 'application/pdf'); S.upload.msg = ''; S.upload.err = ''; render(); }
+  else if (t.dataset.examdate) {
+    const subjects = S.subjects.map(s => s.id === t.dataset.examdate ? { ...s, examDate: t.value } : s);
+    saveConfig({ subjects });
+  }
+});
+document.addEventListener('dragover', e => { const d = e.target.closest && e.target.closest('#drop'); if (d) { e.preventDefault(); d.classList.add('over'); } });
+document.addEventListener('dragleave', e => { const d = e.target.closest && e.target.closest('#drop'); if (d) d.classList.remove('over'); });
+document.addEventListener('drop', e => {
+  const d = e.target.closest && e.target.closest('#drop'); if (!d) return;
+  e.preventDefault();
+  S.upload.files = [...e.dataTransfer.files].filter(f => /pdf$/i.test(f.name) || f.type === 'application/pdf');
+  S.upload.msg = ''; S.upload.err = S.upload.files.length ? '' : 'PDF 파일만 올릴 수 있어요.'; render();
+});
+document.addEventListener('keydown', e => { if (e.target.id === 'drop' && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); $('#file').click(); } });
+
+/* ---------- data ---------- */
+let cfgSaving = Promise.resolve();
+function saveConfig(patch){
+  if (patch.subjects) S.subjects = patch.subjects;
+  const body = { subjects: S.subjects, n: S.n };
+  cfgSaving = cfgSaving.then(() => S.db.doc('config/main').set(body)).catch(err => console.warn(err));
+  return cfgSaving;
+}
+
+async function boot(){
+  render();
+  const c = window.claude;
+  if (!c || !c.use) { S.noDb = true; render(); return; }
+  const [db, sample] = await Promise.all([c.use('db'), c.use('sample')]);
+  S.db = db; S.sample = sample;
+  if (!db) { S.noDb = true; render(); return; }
+  let pending = 4; const done = () => { if (--pending <= 0 && !S.ready) { S.ready = true; } render(); };
+  const onErr = err => { console.warn(err); done(); };
+  db.doc('config/main').onSnapshot(s => { const d = s.data() || {}; S.subjects = d.subjects || []; S.n = d.n || 5; done(); }, onErr);
+  db.collection('materials').onSnapshot(s => { S.materials = s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.createdAt - b.createdAt); done(); }, onErr);
+  db.collection('quizzes').orderBy('createdAt', 'desc').limit(400).onSnapshot(s => {
+    S.quizzes = s.docs.map(d => ({ id: d.id, ...d.data() }));
+    for (const q of S.quizzes) if (!S.answers[q.id] && q.status !== 'graded') S.answers[q.id] = ls.get('ans:' + q.id) || {};
+    done();
+  }, onErr);
+  db.collection('reviews').onSnapshot(s => { S.reviews = s.docs.map(d => ({ id: d.id, ...d.data() })).sort((a, b) => a.createdAt - b.createdAt); done(); }, onErr);
+}
+
+/* ---------- PDF ---------- */
+async function extractPdf(file, onProg){
+  const lib = window.pdfjsLib;
+  if (!lib) throw new Error('PDF 읽기 도구를 불러오지 못했어요. 새로고침 후 다시 시도해 주세요.');
+  try { lib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js'; } catch {}
+  const pdf = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()), isEvalSupported: false }).promise;
+  const pages = [];
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const tc = await page.getTextContent();
+    let t = '';
+    for (const it of tc.items) { t += it.str || ''; if (it.hasEOL) t += '\n'; }
+    pages.push(t.replace(/[ \t]+\n/g, '\n').replace(/\n{3,}/g, '\n\n').trim());
+    onProg(p, pdf.numPages);
+  }
+  return pages;
+}
+function chunkPages(pages, max = 12000){
+  const out = []; let cur = null;
+  pages.forEach((t, i) => {
+    const p = i + 1, piece = `[p.${p}]\n${t}\n\n`;
+    if (cur && cur.text.length + piece.length > max) { out.push(cur); cur = null; }
+    if (!cur) cur = { text: '', from: p, to: p };
+    cur.text += piece; cur.to = p;
+  });
+  if (cur) out.push(cur);
+  const fin = [];
+  for (const c of out) {
+    if (c.text.length <= max * 1.5) fin.push(c);
+    else for (let k = 0; k < c.text.length; k += max) fin.push({ text: c.text.slice(k, k + max), from: c.from, to: c.to });
+  }
+  return fin;
+}
+
+async function uploadFiles(){
+  const U = S.upload;
+  U.err = ''; U.msg = '';
+  let subjectId = U.subjectId;
+  if (!S.subjects.length || subjectId === '__new') {
+    const name = U.newSubject.trim();
+    if (!name) { U.err = '과목 이름을 적어 주세요.'; render(); return; }
+    const exist = S.subjects.find(s => s.name === name);
+    if (exist) subjectId = exist.id;
+    else { subjectId = newId('s'); await saveConfig({ subjects: [...S.subjects, { id: subjectId, name }] }); }
+  }
+  if (!subjectId) { U.err = '과목을 골라 주세요.'; render(); return; }
+  U.busy = true; render();
+  let ok = 0;
+  try {
+    for (let fi = 0; fi < U.files.length; fi++) {
+      const f = U.files[fi];
+      const tag = U.files.length > 1 ? `(${fi + 1}/${U.files.length}) ` : '';
+      U.msg = `${tag}${f.name} 읽는 중…`; U.pct = 0; render();
+      const pages = await extractPdf(f, (p, n) => { U.pct = Math.round(p / n * 70); U.msg = `${tag}${f.name} 읽는 중… ${p}/${n}쪽`; render(); });
+      const chunks = chunkPages(pages);
+      const chars = pages.reduce((s, t) => s + t.length, 0);
+      const id = newId('m');
+      for (let i = 0; i < chunks.length; i++) {
+        U.msg = `${tag}${f.name} 저장 중… ${i + 1}/${chunks.length}`; U.pct = 70 + Math.round((i + 1) / chunks.length * 30); render();
+        await S.db.doc(`chunks/${id}_${i}`).set({ matId: id, i, from: chunks[i].from, to: chunks[i].to, text: chunks[i].text });
+      }
+      await S.db.doc('materials/' + id).set({
+        name: f.name.replace(/\.pdf$/i, ''), kind: U.kind, subjectId, label: U.label.trim(),
+        pages: pages.length, chars, chunks: chunks.length,
+        chunkPages: chunks.map(c => [c.from, c.to]), chunkChars: chunks.map(c => c.text.length),
+        createdAt: Date.now(),
+      });
+      ok++;
+      if (chars < 300) U.err = `${f.name}: 글자를 거의 읽지 못했어요. 스캔한 PDF일 수 있어요.`;
+    }
+    U.msg = `${ok}개 저장했어요.`; U.files = []; U.label = '';
+    if (U.subjectId === '__new' || !U.subjectId) { U.subjectId = subjectId; U.newSubject = ''; }
+  } catch (err) {
+    console.warn(err);
+    U.err = err && err.code === 'quota_exceeded' ? '저장 공간이 가득 찼어요. 오래된 자료를 지우고 다시 시도해 주세요.' : `저장하지 못했어요: ${err && err.message || err}`;
+  }
+  U.busy = false; render();
+}
+
+async function deleteMaterial(id){
+  const m = S.materials.find(x => x.id === id); if (!m) return;
+  try {
+    for (let i = 0; i < (m.chunks || 0); i++) await S.db.doc(`chunks/${id}_${i}`).delete();
+    await S.db.doc('materials/' + id).delete();
+  } catch (err) { console.warn(err); }
+}
+
+/* ---------- quiz generation ---------- */
+function weightedPick(cands, budget){
+  const picked = []; let used = 0; const pool = cands.slice();
+  while (pool.length && used < budget) {
+    const tot = pool.reduce((s, c) => s + c.w, 0);
+    let r = Math.random() * tot, k = 0;
+    for (; k < pool.length - 1; k++) { r -= pool[k].w; if (r <= 0) break; }
+    const c = pool.splice(k, 1)[0];
+    if (picked.length && used + Math.min(c.chars, budget) > budget * 1.15) continue;
+    picked.push(c); used += Math.min(c.chars, budget);
+  }
+  return picked;
+}
+function sliceText(t, max){
+  if (t.length <= max) return t;
+  const start = Math.floor(Math.random() * (t.length - max));
+  return '…' + t.slice(start, start + max) + '…';
+}
+function typeMix(n){
+  const calc = Math.round(n * 0.4), essay = Math.max(1, Math.round(n * 0.2));
+  return { short: Math.max(0, n - calc - essay), calc, essay };
+}
+
+async function generate(){
+  if (S.gen) return;
+  if (!S.sample) { S.genErr = 'AI 기능을 쓸 수 없는 화면이에요. claude.ai에서 열어 주세요.'; render(); return; }
+  const subject = S.subject;
+  S.genErr = ''; S.gen = { subject, msg: '자료를 고르는 중…' }; render();
+  try {
+    const usage = {};
+    for (const q of S.quizzes) for (const c of q.usedChunks || []) usage[c] = (usage[c] || 0) + 1;
+    const lect = lectureMats();
+    const newest = lect.length ? lect[lect.length - 1].id : null;
+    const cands = [];
+    for (const m of lect) for (let i = 0; i < (m.chunks || 0); i++) {
+      const id = `${m.id}_${i}`;
+      cands.push({ id, m, i, chars: (m.chunkChars || [])[i] || 12000, w: (m.id === newest ? 2.2 : 1) / (1 + (usage[id] || 0)) });
+    }
+    const lecPick = weightedPick(cands, 34000);
+    const exCands = [];
+    for (const m of examMats()) for (let i = 0; i < (m.chunks || 0); i++) exCands.push({ id: `${m.id}_${i}`, m, i, chars: (m.chunkChars || [])[i] || 12000, w: 1 });
+    const exPick = weightedPick(exCands, 14000);
+
+    S.gen.msg = '자료 내용을 불러오는 중…'; render();
+    const fetchText = async c => { const s = await S.db.doc('chunks/' + c.id).get(); return s.exists ? s.data().text : ''; };
+    const lecTexts = await Promise.all(lecPick.map(fetchText));
+    const exTexts = await Promise.all(exPick.map(fetchText));
+
+    const review = openReviews().sort((a, b) => (a.lastAsked || 0) - (b.lastAsked || 0))[0] || null;
+    const prev = S.quizzes.filter(q => q.subjectId === subject || subject === 'all').slice(0, 12)
+      .flatMap(q => q.questions.map(x => '- ' + String(x.question).slice(0, 90).replace(/\n/g, ' ')));
+    const n = S.n, mix = typeMix(n);
+    const date = today();
+    const setNo = S.quizzes.filter(q => q.date === date && q.subjectId === subject).length + 1;
+
+    const build = (lecMax, exMax) => {
+      const lecBlock = lecPick.map((c, k) => `### ${c.m.name}${c.m.label ? ' (' + c.m.label + ')' : ''}\n${sliceText(lecTexts[k], lecMax)}`).join('\n\n');
+      const exBlock = exPick.map((c, k) => `### ${c.m.name}${c.m.label ? ' (' + c.m.label + ')' : ''}\n${sliceText(exTexts[k], exMax)}`).join('\n\n');
+      return `너는 대학 수업의 시험 대비 튜터야. 아래 [수업 자료]로 오늘의 복습 퀴즈 ${n}문제를 만들어.
+
+규칙
+- 문제 유형: short(단답형: 용어·값·짧은 답), calc(계산: 자료의 공식·수치를 써서 풀기, 숫자를 바꿔 출제해도 됨), essay(서술형: 2~5문장으로 설명).
+- 유형 비율은 대략 short ${mix.short}, calc ${mix.calc}, essay ${mix.essay}. 자료에 계산할 내용이 없으면 calc 대신 short나 essay로 바꿔.
+- 시험에 나올 만한 핵심 개념, 원리, 공식, 실험 절차와 그 이유 위주로 내. 페이지 번호, 저자, 날짜, 행정 공지 같은 건 묻지 마.
+- 한국어로 쓰되 전문 용어는 자료 원문 표기를 괄호로 병기해. 예: 열전도율(熱伝導率)
+- 수식은 LaTeX 쓰지 말고 일반 텍스트로 써. 예: x², √2, Δt, ×, 1.2×10^-3 m
+- 자료만 보고 답할 수 있는 문제로 내.
+- 문제마다 서로 다른 포인트를 물어. 아래 [이전에 낸 문제]와도 겹치지 않게 해.
+${exBlock ? '- [과거 시험문제]의 출제 형식, 난이도, 자주 나온 주제를 참고해서 비슷한 경향으로 내. 그대로 베끼지 말고 변형해.\n' : ''}${review ? `- [복습 문제]는 학생이 전에 틀린 문제야. 같은 개념을 숫자나 표현을 바꿔 묻는 변형 문제를 정확히 1문제 포함하고, 그 문제의 reviewId에 "${review.id}"를 넣어. 나머지 문제의 reviewId는 null.\n` : ''}- 오늘 날짜 ${date}, ${setNo}번째 세트. 변주 시드 ${Math.floor(Math.random() * 1e6)}.
+
+JSON만 답해. 다른 말은 쓰지 마:
+{"questions":[{"type":"short|calc|essay","topic":"주제 (10자 안팎)","question":"문제 본문","answer":"모범 답안. 계산은 풀이 과정과 단위 포함","keyPoints":["채점 포인트"],"evidence":"근거가 되는 자료 원문을 1~2문장 그대로 인용","source":"자료 이름 p.쪽","reviewId":null}]}
+
+[수업 자료]
+${lecBlock}
+${exBlock ? `\n[과거 시험문제]\n${exBlock}\n` : ''}${review ? `\n[복습 문제]\n문제: ${review.question}\n모범 답안: ${review.answer}\n` : ''}
+[이전에 낸 문제]
+${prev.length ? prev.slice(0, 60).join('\n') : '(없음)'}`;
+    };
+    let limits = null; try { limits = await S.sample.limits(); } catch {}
+    const maxBytes = (limits && limits.maxPromptBytes) || 200000;
+    let lecMax = 14000, exMax = 14000, prompt = build(lecMax, exMax);
+    const enc = new TextEncoder();
+    while (enc.encode(prompt).length > maxBytes * 0.9 && lecMax > 2000) { lecMax = Math.floor(lecMax * 0.75); exMax = Math.floor(exMax * 0.75); prompt = build(lecMax, exMax); }
+
+    S.gen.msg = 'AI가 문제를 만드는 중…'; render();
+    const out = await S.sample.json(prompt, { modelTier: 'default', cache: false });
+    let qs = (out && out.questions || []).filter(q => q && q.question && q.answer).slice(0, n);
+    if (!qs.length) throw new Error('문제를 만들지 못했어요.');
+    qs = qs.map((q, i) => ({
+      id: 'q' + (i + 1), type: ['short', 'calc', 'essay'].includes(q.type) ? q.type : 'short',
+      topic: String(q.topic || ''), question: String(q.question), answer: String(q.answer),
+      keyPoints: Array.isArray(q.keyPoints) ? q.keyPoints.map(String) : [],
+      evidence: String(q.evidence || ''), source: String(q.source || ''),
+      reviewId: review && q.reviewId === review.id ? review.id : null,
+    }));
+    const id = `${date}_${subject}_${setNo}`;
+    const srcNames = [...new Set(lecPick.map(c => c.m.name))];
+    await S.db.doc('quizzes/' + id).set({
+      date, subjectId: subject, setNo, createdAt: Date.now(), status: 'open',
+      questions: qs, usedChunks: lecPick.map(c => c.id),
+      sources: srcNames.slice(0, 3).join(', ') + (srcNames.length > 3 ? ` 외 ${srcNames.length - 3}개` : ''),
+    });
+    if (review && qs.some(q => q.reviewId)) await S.db.doc('reviews/' + review.id).update({ lastAsked: Date.now() }).catch(() => {});
+    S.answers[id] = {};
+  } catch (err) {
+    console.warn(err);
+    S.genErr = errText(err, '문제를 만들지 못했어요');
+  }
+  S.gen = null; render();
+}
+function errText(err, base){
+  const c = err && err.code;
+  if (c === 'not_granted') return 'AI 사용을 허용해야 이 기능을 쓸 수 있어요. 새로고침하면 다시 물어봐요.';
+  if (c === 'rate_limited') return 'AI 사용량이 잠시 한도에 닿았어요. 조금 뒤에 다시 눌러 주세요.';
+  if (c === 'invalid_json') return `${base}. AI 답이 형식에 맞지 않았어요. 다시 눌러 주세요.`;
+  return `${base}: ${(err && err.message) || err}. 다시 눌러 주세요.`;
+}
+
+/* ---------- grading ---------- */
+let timer = null;
+async function submit(quizId){
+  const q = S.quizzes.find(x => x.id === quizId);
+  if (!q || S.grading) return;
+  if (!S.sample) { S.gradeErr = 'AI 기능을 쓸 수 없는 화면이에요.'; render(); return; }
+  const answers = {};
+  for (const qu of q.questions) answers[qu.id] = ((S.answers[quizId] || {})[qu.id] || '').trim();
+  S.grading = quizId; S.gradeErr = ''; render();
+  const t0 = Date.now();
+  timer = setInterval(() => { const el = $('#elapsed'); if (el) el.textContent = Math.round((Date.now() - t0) / 1000) + '초'; }, 1000);
+  try {
+    await S.db.doc('quizzes/' + quizId).update({ answers });
+    const items = q.questions.map(qu => ({ id: qu.id, type: qu.type, question: qu.question, modelAnswer: qu.answer, keyPoints: qu.keyPoints, evidence: qu.evidence, studentAnswer: answers[qu.id] || '(빈 답안)' }));
+    const prompt = `너는 대학 수업 시험 대비 튜터이자 채점자야. 학생 답안을 채점하고 해설을 써 줘.
+
+채점 기준
+- 의미가 맞으면 표현이 달라도 정답. 단답형은 핵심 용어나 값이 맞는지 봐.
+- 계산은 최종값(반올림·유효숫자 차이는 관대하게, 단위 누락은 감점)과 풀이 과정을 함께 봐. 과정이 맞고 계산 실수면 부분 점수.
+- 서술형은 keyPoints를 얼마나 담았는지로 부분 점수.
+- 빈 답안은 0점.
+- score는 0~100 정수. verdict는 80 이상 "정답", 40~79 "부분 정답", 39 이하 "오답".
+
+해설 작성
+- 한국어로, 전문 용어는 자료 원문 표기를 괄호로 병기. 수식은 LaTeX 없이 일반 텍스트.
+- feedback: 학생 답의 맞은 점과 틀린 점을 1~2문장으로 짚기.
+- explanation: 개념을 시험에 나오는 관점에서 3~6문장으로 설명. 계산 문제는 단계별 풀이를 줄바꿈으로 나눠서.
+- tip: 시험에서 기억할 한 줄.
+
+문제와 답안(JSON):
+${JSON.stringify(items)}
+
+JSON만 답해. 다른 말은 쓰지 마:
+{"results":[{"id":"q1","score":0,"verdict":"정답|부분 정답|오답","feedback":"","explanation":"","tip":""}],"summary":"오늘 결과 총평 2~3문장","focus":["다시 볼 개념"]}`;
+    const out = await S.sample.json(prompt, { modelTier: 'default', cache: false });
+    const results = q.questions.map(qu => {
+      const r = (out && out.results || []).find(x => x && x.id === qu.id) || {};
+      const score = Math.max(0, Math.min(100, Math.round(+r.score || 0)));
+      return { id: qu.id, score, verdict: String(r.verdict || (score >= 80 ? '정답' : score >= 40 ? '부분 정답' : '오답')), feedback: String(r.feedback || ''), explanation: String(r.explanation || ''), tip: String(r.tip || '') };
+    });
+    const total = Math.round(results.reduce((s, r) => s + r.score, 0) / results.length);
+    await S.db.doc('quizzes/' + quizId).update({
+      status: 'graded', gradedAt: Date.now(),
+      grading: { results, total, summary: String(out.summary || ''), focus: Array.isArray(out.focus) ? out.focus.map(String).slice(0, 6) : [] },
+    });
+    for (const qu of q.questions) {
+      const r = results.find(x => x.id === qu.id);
+      if (qu.reviewId) {
+        await S.db.doc('reviews/' + qu.reviewId).update(r.score >= 70 ? { status: 'resolved', resolvedAt: Date.now() } : { lastWrong: Date.now() }).catch(() => {});
+      } else if (r.score < 70) {
+        await S.db.doc(`reviews/${quizId}_${qu.id}`).set({
+          subjectId: q.subjectId, topic: qu.topic, question: qu.question, answer: qu.answer,
+          explanation: r.explanation, source: qu.source, status: 'open', createdAt: Date.now(), quizId,
+        }).catch(() => {});
+      }
+    }
+    ls.del('ans:' + quizId);
+  } catch (err) {
+    console.warn(err);
+    S.gradeErr = errText(err, '채점하지 못했어요');
+  }
+  clearInterval(timer); S.grading = null; render();
+}
+
+boot();
+})();
+</script>
+
+</body></html>
